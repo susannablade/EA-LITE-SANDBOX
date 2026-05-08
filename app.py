@@ -4,7 +4,7 @@ import re
 import requests
 import streamlit as st
 from dotenv import load_dotenv
-import google.generativeai as genai
+from google import genai
 import resend
 
 # ---------------------------
@@ -12,17 +12,12 @@ import resend
 # ---------------------------
 load_dotenv()
 
-genai.configure(
+client = genai.Client(
     api_key=os.getenv("GEMINI_API_KEY")
-)
-
-model = genai.GenerativeModel(
-    "gemini-2.5-flash"
 )
 
 resend.api_key = os.getenv(
     "RESEND_API_KEY"
-)
 )
 
 ARTIC_API_URL = (
@@ -30,7 +25,6 @@ ARTIC_API_URL = (
 )
 
 session = requests.Session()
-
 # ---------------------------
 # SESSION STATE
 # ---------------------------
@@ -237,23 +231,16 @@ def generate_description(artwork):
     """
 
     try:
-
-        response = model.generate_content(
-            prompt
-        )
-
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+            )
         if response and response.text:
-
             return response.text.strip()
-
         return "The archive remains quiet."
-
     except Exception as e:
-
         print(f"Description error: {e}")
-
         return "The archive remains quiet."
-
 
 # ---------------------------
 # INTERPRETATION
@@ -261,7 +248,8 @@ def generate_description(artwork):
 def generate_interpretation(
     user_input,
     artwork,
-    description
+    description,
+    interpretation
 ):
 
     prompt = f"""
@@ -290,9 +278,9 @@ def generate_interpretation(
 
     try:
 
-        response = model.generate_content(
-            prompt
-        )
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt)
 
         if response and response.text:
 
@@ -343,9 +331,9 @@ def generate_user_reflection(
 
     try:
 
-        response = model.generate_content(
-            prompt
-        )
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt)
 
         if response and response.text:
 
@@ -626,8 +614,8 @@ if st.session_state.artwork:
                 generate_user_reflection(
                     st.session_state.user_input,
                     art,
-                    st.session_state.interpretation
-                )
+                    st.session_state.description,
+                    st.session_state.interpretation)
             )
 
         st.rerun()
