@@ -1,293 +1,209 @@
 import os
 import random
-import re
 import streamlit as st
 import requests
-import time # Import the time module
 from dotenv import load_dotenv
 import google.generativeai as genai
 
 # ---------------------------
 # CONFIG
 # ---------------------------
-# Ensure the API key is loaded from an environment variable
+load_dotenv()
 genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+model_interpret = genai.GenerativeModel("gemini-2.5-flash") 
 
-# Define two different models for different tasks
-model_fast = genai.GenerativeModel("gemini-2.5-flash-lite") # Faster model for quick decisions
-model_interpret = genai.GenerativeModel("gemini-2.5-flash") # More capable model for detailed interpretations
+Art_Institute_of_Chicago_API_URL = "https://api.artic.edu/api/v1/artworks"
 
+#---------------------------
+# SESSION STATE (managing magic)
+#---------------------------
 session = requests.Session()
 
-TAROT_API_URL = "https://tarot-api-3hv5.onrender.com/api/v1/cards/random"
-Art_Institute_of_Chicago_API_URL = "https://api.artic.edu/api/v1/artworks/search"
+if "artwork" not in st.session_state:
+    st.session_state.artwork = None
 
+if "interpretation" not in st.session_state:
+    st.session_state.interpretation = ""
+
+if "user_input" not in st.session_state:
+    st.session_state.user_input = ""
 # ---------------------------
-# TAROT
+# ARTIC API
 # ---------------------------
-if "recent_cards" not in st.session_state:
-    st.session_state.recent_cards = []
-if "recent_artworks" not in st.session_state:
-    st.session_state.recent_artworks = []
-
-# New states for optional interpretation
-if "current_card_data" not in st.session_state:
-    st.session_state.current_card_data = None
-if "current_artwork_data" not in st.session_state:
-    st.session_state.current_artwork_data = None
-if "current_user_input" not in st.session_state:
-    st.session_state.current_user_input = ""
-if "show_results_display" not in st.session_state:
-    st.session_state.show_results_display = False
-if "interpretation_text" not in st.session_state:
-    st.session_state.interpretation_text = ""
-if "interpretation_requested" not in st.session_state:
-    st.session_state.interpretation_requested = False
-
-def get_random_cards(n=3):
-    cards = []
-    for _ in range(n):
-        try:
-            res = session.get(TAROT_API_URL, timeout=5)
-            res.raise_for_status()
-            cards.append(res.json()["cards"][0])
-        except:
-            continue
-    return cards
-
-def filter_recent(cards):
-    recent = st.session_state.recent_cards
-    filtered = [c for c in cards if c["name"] not in recent]
-    return filtered if filtered else cards
-
-# ---------------------------
-# AI Choose Tarot Card
-# ---------------------------
-def choose_card(cards, user_input):
-    names = [c["name"] for c in cards]
-    prompt = f"User input: {user_input}\n\nChoose the tarot card that best fits.\n\nCards:\n{names}\n\nReturn ONLY the card name."
-
-    try:
-        response = model_fast.generate_content(prompt)
-        text = response.text.strip()
-        for c in cards:
-            if c["name"].lower() in text.lower():
-                return c
-    except:
-        pass
-    return random.choice(cards)
-
-
-# ---------------------------
-# CHICAGO API
-# ---------------------------
-@st.cache_data(ttl=100)
-def get_random_artic_pool(n=4):
-    print("Attempting to fetch artworks from Art Institute of Chicago API...")
-    try:
-        res = session.get(
-            "https://api.artic.edu/api/v1/artworks/search",
-            params={
-                "q": "painting",
-                "fields": "id,title,image_id,artist_title,date_display",
-                "limit": 40 # Increased limit to get more candidates
-            },
-            timeout=5
-        ).json()
-
-        data = res.get("data", [])
-        print(f"API response data length: {len(data)}")
-
-        # Filter out recently displayed artworks
-        recent_artwork_ids = st.session_state.recent_artworks
-        filtered_data = [obj for obj in data if obj.get("id") and obj.get("id") not in recent_artwork_ids]
-
-        pool = []
-        for obj in filtered_data:
-            image_id = obj.get("image_id")
-            if image_id:
-                image_url = f"https://www.artic.edu/iiif/2/{image_id}/full/843,/0/default.jpg"
-
-                pool.append({
-                    "id": obj.get("id"), # Add artwork ID
-                    "image": image_url,
-                    "title": obj.get("title", "Untitled"),
-                    "artist": obj.get("artist_title", "Unknown Artist"),
-                    "date": obj.get("date_display", "Unknown Date"),
-                    "source": "Art Institute of Chicago"
-                })
-        print(f"Filtered pool length: {len(pool)}")
-
-        if len(pool) >= n:
-            return random.sample(pool, n)
-
-        return pool # Return all available unique items if not enough to sample
-
-    except Exception as e:
-        print(f"Art Institute API error: {e}") # Log the actual exception
-        st.error("Art Institute API error")
-        st.exception(e)
-        return []
-# ---------------------------
-# SEARCH ORCHESTRATOR
-# ---------------------------
-def curate_artwork(pool, card_name, user_input):
-    # Fixed indentation for the selection logic
-    options = "\n".join([
-        f"{i}: {a.get('title','Untitled')} | {a.get('artist','Unknown')} | {a.get('date','')}"
-        for i, a in enumerate(pool)
-    ])
-
-    prompt = f"""
-    You are an intuitive museum curator with a poetic sense of symbolism.
-    User: {user_input}
-    Tarot: {card_name}
-    Choose the artwork that feels most symbolically resonant.
-    Options:
-    {options}
-    Return ONLY the index number of the selection.
+def get_random_painting():
+    """
+    Fetch a single random painting from the Art Institute of Chicago
+    that has an image and rich metadata.
     """
 
+    # Pick a random page deep into the collection to avoid "top hits"
+    random_page = random.randint(234, 591)
+
     try:
-        text = model_fast.generate_content(prompt).text
-        match = re.search(r"\d+", text)
-        choice = int(match.group()) if match else 0
-    except:
-        choice = 0
+        response = session.get(
+            Art_Institute_of_Chicago_API_URL,
+            params={
+                "page": random_page,
+                "limit": 25,
+                "fields": (
+                    "id,title,image_id,artist_title,artist_display,"
+                    "date_display,medium_display,dimensions,"
+                    "description,classification_title,style_title,theme_titles"
+                )
+            },
+            timeout=5
+        )
+        response.raise_for_status()
+        data = response.json().get("data", [])
 
-    selected = pool[min(choice, len(pool)-1)]
+    except Exception as e:
+        print(f"ARTIC API error: {e}")
+        return None
 
-    return {
-        "id": selected["id"], # Return artwork ID
-        "image": selected["image"],
-        "title": selected["title"],
-        "artist": selected["artist"],
-        "date": selected["date"],
-        "source": selected["source"]}
+    # Filter to paintings with images
+    paintings = []
+    for obj in data:
+        if (
+            obj.get("image_id")
+            and obj.get("classification_title") == "Painting"
+        ):
+            image_url = (
+                f"https://www.artic.edu/iiif/2/"
+                f"{obj['image_id']}/full/843,/0/default.jpg"
+            )
 
+            paintings.append({
+                "id": obj.get("id"),
+                "title": obj.get("title", "Untitled"),
+                "artist": obj.get("artist_title", "Unknown Artist"),
+                "artist_display": obj.get("artist_display", ""),
+                "date": obj.get("date_display", "Unknown Date"),
+                "medium": obj.get("medium_display", "Unknown Medium"),
+                "dimensions": obj.get("dimensions", ""),
+                "description": obj.get("description", ""),
+                "style": obj.get("style_title", ""),
+                "themes": obj.get("theme_titles", []),
+                "image": image_url,
+                "source": "Art Institute of Chicago"
+            })
+
+    if not paintings:
+        return None
+
+    return random.choice(paintings)
 #----------------------------
 # AI INTERPRETATION
 #----------------------------
-def generate_interpretation(card, meaning, user_input, artwork):
+def generate_interpretation(user_input, artwork):
+    """
+    Generate an interpretive reflection connecting the user's input
+    with the selected artwork's symbolism, medium, and context.
+    """
+
     prompt = f"""
-    You are an oracle connecting symbolism across tarot and art.
+    You are an art oracle.
 
-    Your task:
-    Explain how the selected artwork relates to BOTH:
-    1. The user's input
-    2. The tarot card meaning
+    A user has shared the following personal context:
+    "{user_input}"
 
-    Guidelines:
-    - Connect the symbolism of the card to the user's situation
-    - Make the artist come to life for the reader by including notes on the style, school of art, differentiators of the artist.
-    - 5-6 sentences max
-    - Make it feel insightful, not random
+    They have been shown this artwork from the Art Institute of Chicago:
 
-    User's Context: {user_input}
-    Tarot Card: {card}
-    Tarot Card Meaning: {meaning}
-
-    Artwork:
     Title: {artwork['title']}
     Artist: {artwork['artist']}
     Date: {artwork['date']}
+    Medium: {artwork['medium']}
+    Dimensions: {artwork['dimensions']}
+    Style: {artwork['style']}
+    Themes: {', '.join(artwork['themes']) if artwork['themes'] else 'None listed'}
+    Description: {artwork['description']}
 
+    Your task:
+    Write a reflective interpretation (5–6 sentences) that connects:
+    - the user's personal context
+    - the artwork’s visual qualities, medium, and historical moment
+    - the artist’s approach or sensibility (if relevant)
 
-    Output: A short interpretation.
+    Guidelines:
+    - Do not be literal or obvious
+    - Avoid generic art language
+    - Treat the artwork as a living presence
+    - Let meaning emerge rather than “explaining” it
+
+    Output only the interpretation text.
     """
 
     try:
         response = model_interpret.generate_content(prompt)
-        generated_text = response.text.strip()
-        if not generated_text:
-            return f"The Oracle is silent. (AI failed to generate interpretation due to empty response) Card Meaning: {meaning}"
-        return generated_text.replace("\n\n", "\n")
+        text = response.text.strip()
+        return text if text else "The archive remains quiet."
     except Exception as e:
-        print(f"Error generating interpretation: {e}")
-        return f"The Oracle is silent. (AI failed to generate interpretation due to error: {e}) Card Meaning: {meaning}"
-
+        print(f"Interpretation error: {e}")
+        return "The archive remains quiet."
 #---------------------------
 # UI
 # ---------------------------
-st.title("Echo Arcana: The Curated Oracle")
-st.write("**Echo your data into the halls of history. Transform your search history into a symbolic visual reading, retrieved from centuries of art by an intelligent oracle.**")
+st.title("Echo Archive")
+st.write(
+    "A quiet experiment in reflection. "
+    "An artwork is drawn at random from the Art Institute of Chicago. "
+    "Meaning emerges after."
+)
 
-with st.form("oracle_form"):
+# --- USER INPUT ---
+with st.form("context_form"):
     user_input = st.text_input(
-        "Enter your last 3 google searches:",
-        placeholder="e.g. banana peels, gardening, organic soil"
+        "What’s on your mind right now?",
+        placeholder="A thought, question, your recent search history"
     )
-    submitted = st.form_submit_button("Consult the Archive")
+    submit = st.form_submit_button("Draw an artwork")
 
-if submitted:
-    if not user_input:
-        st.warning("Please enter some search history first.")
+# --- HANDLE SUBMISSION ---
+if submit:
+    if not user_input.strip():
+        st.warning("Please share a thought or fragment of context.")
         st.stop()
 
-    # Reset interpretation flags and data when new submission occurs
-    st.session_state.interpretation_requested = False
-    st.session_state.interpretation_text = ""
-    st.session_state.show_results_display = False # Hide old results until new ones are ready
+    st.session_state.user_input = user_input
+    st.session_state.interpretation = ""
 
-    with st.spinner("Pulling your Card..."):
-        all_cards = get_random_cards(3)
-        cards = filter_recent(all_cards)
-        card = choose_card(cards, user_input)
-        st.session_state.current_card_data = card
-
-    with st.spinner("Searching the Archives for resonant art..."):
-        # Add a short delay to make the spinner more visible
-        time.sleep(1)
-        pool = get_random_artic_pool(4)
-
-    if not pool:
-        st.error("The archive is empty.")
+    with st.spinner("Searching the archive…"):
+        artwork = None
+    for _ in range(3):
+        artwork = get_random_painting()
+        if artwork:
+            break
+    if artwork is None:
+        st.error("The archive returned nothing. Please try again.")
         st.stop()
 
-    artwork = curate_artwork(pool, card["name"], user_input)
-    st.session_state.current_artwork_data = artwork
-    st.session_state.current_user_input = user_input # Store user input for interpretation
+    st.session_state.artwork = artwork
 
-    # Set flags to display the card and artwork
-    st.session_state.show_results_display = True
 
-    # Update recent cards/artworks list
-    st.session_state.recent_cards.append(card["name"])
-    st.session_state.recent_cards = st.session_state.recent_cards[-5:]
-    st.session_state.recent_artworks.append(artwork["id"])
-    st.session_state.recent_artworks = st.session_state.recent_artworks[-10:] # Keep a history of the last 10 artworks
+# --- DISPLAY ARTWORK ---
+if st.session_state.artwork:
+    art = st.session_state.artwork
 
-# Display results and optional interpretation outside the form submission block
-if st.session_state.get('show_results_display', False):
-    card = st.session_state.current_card_data
-    artwork = st.session_state.current_artwork_data
-    user_input_for_interp = st.session_state.current_user_input
+    st.image(art["image"], use_container_width=True)
+    st.markdown(f"**{art['title']}**")
+    st.caption(f"{art['artist']}, {art['date']}")
+    st.caption(f"Medium: {art['medium']}")
 
-    if card and artwork:
-        st.subheader(f"{card['name']}")
-        st.info(card["meaning_up"])
+    if art["description"]:
+        with st.expander("About this work"):
+            st.write(art["description"])
 
-        st.image(artwork["image"], use_container_width=True)
-        st.markdown(f"**{artwork['title']}**")
-        st.caption(f"{artwork['artist']}, {artwork['date']}")
-        st.caption(f"Source: {artwork['source']}")
+    st.divider()
 
-        interpret_button_clicked = st.button("Request Oracle's Insight", key="interpret_button")
+    # --- INTERPRETATION ---
+    interpret = st.button("Reflect on this artwork")
 
-        if interpret_button_clicked or st.session_state.interpretation_requested:
-            # Generate interpretation only if button is clicked AND it hasn't been requested yet for this session
-            if interpret_button_clicked and not st.session_state.interpretation_requested:
-                st.session_state.interpretation_requested = True # Mark as requested
-                with st.spinner("Interpreting Meaning..."):
-                    interpretation = generate_interpretation(
-                        card["name"],
-                        card["meaning_up"],
-                        user_input_for_interp,
-                        artwork
-                    )
-                st.session_state.interpretation_text = interpretation
+    if interpret and not st.session_state.interpretation:
+        with st.spinner("Interpreting…"):
+            st.session_state.interpretation = generate_interpretation(
+                st.session_state.user_input,
+                art
+            )
 
-            # Display the interpretation if it has been generated
-            if st.session_state.interpretation_text:
-                st.markdown("**The Oracle's Insight:**")
-                st.write(st.session_state.interpretation_text)
+    if st.session_state.interpretation:
+        st.markdown("### Reflection")
+        st.write(st.session_state.interpretation)
