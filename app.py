@@ -32,60 +32,65 @@ if "user_input" not in st.session_state:
 # ---------------------------
 def get_random_painting():
     """
-    Fetch a single random painting from the Art Institute of Chicago
-    that has an image and rich metadata.
+    Fetch a random painting from the Art Institute of Chicago.
     """
 
-    # Pick a random page deep into the collection to avoid "top hits"
-    random_page = random.randint(234, 591)
+    random_page = random.randint(1, 500)
 
     try:
         response = session.get(
-            Art_Institute_of_Chicago_API_URL,
+            f"{Art_Institute_of_Chicago_API_URL}/search",
             params={
                 "page": random_page,
                 "limit": 25,
+                "q": "painting",
+                "query[term][is_public_domain]": True,
+                "query[exists][field]": "image_id",
                 "fields": (
                     "id,title,image_id,artist_title,artist_display,"
                     "date_display,medium_display,dimensions,"
                     "description,classification_title,style_title,theme_titles"
                 )
             },
-            timeout=5
+            timeout=10
         )
+
         response.raise_for_status()
+
         data = response.json().get("data", [])
 
     except Exception as e:
         print(f"ARTIC API error: {e}")
         return None
 
-    # Filter to paintings with images
     paintings = []
-    for obj in data:
-        if (
-            obj.get("image_id")
-            and obj.get("classification_title") == "Painting"
-        ):
-            image_url = (
-                f"https://www.artic.edu/iiif/2/"
-                f"{obj['image_id']}/full/843,/0/default.jpg"
-            )
 
-            paintings.append({
-                "id": obj.get("id"),
-                "title": obj.get("title", "Untitled"),
-                "artist": obj.get("artist_title", "Unknown Artist"),
-                "artist_display": obj.get("artist_display", ""),
-                "date": obj.get("date_display", "Unknown Date"),
-                "medium": obj.get("medium_display", "Unknown Medium"),
-                "dimensions": obj.get("dimensions", ""),
-                "description": obj.get("description", ""),
-                "style": obj.get("style_title", ""),
-                "themes": obj.get("theme_titles", []),
-                "image": image_url,
-                "source": "Art Institute of Chicago"
-            })
+    for obj in data:
+
+        image_id = obj.get("image_id")
+
+        if not image_id:
+            continue
+
+        image_url = (
+            f"https://www.artic.edu/iiif/2/"
+            f"{image_id}/full/843,/0/default.jpg"
+        )
+
+        paintings.append({
+            "id": obj.get("id"),
+            "title": obj.get("title", "Untitled"),
+            "artist": obj.get("artist_title", "Unknown Artist"),
+            "artist_display": obj.get("artist_display", ""),
+            "date": obj.get("date_display", "Unknown Date"),
+            "medium": obj.get("medium_display", "Unknown Medium"),
+            "dimensions": obj.get("dimensions", ""),
+            "description": obj.get("description", ""),
+            "style": obj.get("style_title", ""),
+            "themes": obj.get("theme_titles", []),
+            "image": image_url,
+            "source": "Art Institute of Chicago"
+        })
 
     if not paintings:
         return None
