@@ -25,6 +25,7 @@ ARTIC_API_URL = (
 )
 
 session = requests.Session()
+
 # ---------------------------
 # SESSION STATE
 # ---------------------------
@@ -59,6 +60,30 @@ def valid_email(email):
     pattern = r"^[^@]+@[^@]+\.[^@]+$"
 
     return re.match(pattern, email)
+
+
+def ask_gemini(prompt):
+
+    try:
+
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=prompt
+        )
+
+        if (
+            response
+            and hasattr(response, "text")
+            and response.text
+        ):
+
+            return response.text.strip()
+
+    except Exception as e:
+
+        print(f"Gemini error: {e}")
+
+    return "The archive remains quiet."
 
 
 # ---------------------------
@@ -183,7 +208,7 @@ def get_random_artwork(retries=5):
 
 
 # ---------------------------
-# DESCRIPTION GENERATION
+# DESCRIPTION
 # ---------------------------
 def generate_description(artwork):
 
@@ -203,7 +228,9 @@ def generate_description(artwork):
     Medium: {artwork['medium']}
     Classification: {artwork['classification']}
     Style: {artwork['style']}
-    Themes: {
+
+    Themes:
+    {
         ', '.join(artwork['themes'])
         if artwork['themes']
         else 'None listed'
@@ -230,17 +257,8 @@ def generate_description(artwork):
     Output only the description.
     """
 
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt
-            )
-        if response and response.text:
-            return response.text.strip()
-        return "The archive remains quiet."
-    except Exception as e:
-        print(f"Description error: {e}")
-        return "The archive remains quiet."
+    return ask_gemini(prompt)
+
 
 # ---------------------------
 # INTERPRETATION
@@ -248,8 +266,7 @@ def generate_description(artwork):
 def generate_interpretation(
     user_input,
     artwork,
-    description,
-    interpretation
+    description
 ):
 
     prompt = f"""
@@ -276,27 +293,11 @@ def generate_interpretation(
     Output only the interpretation.
     """
 
-    try:
-
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt)
-
-        if response and response.text:
-
-            return response.text.strip()
-
-        return "The archive remains quiet."
-
-    except Exception as e:
-
-        print(f"Interpretation error: {e}")
-
-        return "The archive remains quiet."
+    return ask_gemini(prompt)
 
 
 # ---------------------------
-# USER REFLECTION HELPER
+# USER REFLECTION
 # ---------------------------
 def generate_user_reflection(
     user_input,
@@ -329,23 +330,7 @@ def generate_user_reflection(
     Output only the reflection.
     """
 
-    try:
-
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=prompt)
-
-        if response and response.text:
-
-            return response.text.strip()
-
-        return ""
-
-    except Exception as e:
-
-        print(f"Reflection error: {e}")
-
-        return ""
+    return ask_gemini(prompt)
 
 
 # ---------------------------
@@ -368,6 +353,7 @@ def send_archive_email(
     <h2>Echo Archive — Reflection Record</h2>
 
     <h3>Artwork</h3>
+
     <p>
     <strong>{artwork['title']}</strong><br>
     {artwork['artist']}<br>
@@ -385,6 +371,7 @@ def send_archive_email(
     <p>{reflection}</p>
 
     <h3>Artwork Image</h3>
+
     <p>
     <a href="{artwork['image']}">
     View Artwork
@@ -411,6 +398,7 @@ def send_archive_email(
         print(f"Email error: {e}")
 
         return False
+
 
 # ---------------------------
 # UI
@@ -598,7 +586,7 @@ if st.session_state.artwork:
     )
 
     # ---------------------------
-    # GEMINI HELP BUTTON
+    # AI ASSIST BUTTON
     # ---------------------------
     assist = st.button(
         "Help me articulate this"
@@ -614,8 +602,8 @@ if st.session_state.artwork:
                 generate_user_reflection(
                     st.session_state.user_input,
                     art,
-                    st.session_state.description,
-                    st.session_state.interpretation)
+                    st.session_state.interpretation
+                )
             )
 
         st.rerun()
