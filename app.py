@@ -5,7 +5,7 @@ import requests
 import streamlit as st
 from dotenv import load_dotenv
 import google.generativeai as genai
-from resend import Resend
+import resend
 
 # ---------------------------
 # CONFIG
@@ -20,8 +20,9 @@ model = genai.GenerativeModel(
     "gemini-2.5-flash"
 )
 
-resend = Resend(
-    api_key=os.getenv("RESEND_API_KEY")
+resend.api_key = os.getenv(
+    "RESEND_API_KEY"
+)
 )
 
 ARTIC_API_URL = (
