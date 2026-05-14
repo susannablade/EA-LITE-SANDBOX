@@ -341,7 +341,7 @@ def send_archive_email(
     View Artwork
     </a>
     </p>
-    
+
     <h3>Visual Description</h3>
     <p>{description}</p>
 
@@ -393,7 +393,7 @@ st.write(
 with st.form("archive_form"):
 
     user_input = st.text_area(
-        "What concepts or thoughts are on your mind?",
+        "Share a concept that's been on your mind, then pull an artwork from the Art Institute of Chicago.",
         placeholder=(
             "A concept, memory, tension, idea, or feeling..."
         ),
@@ -401,7 +401,7 @@ with st.form("archive_form"):
     )
 
     submitted = st.form_submit_button(
-        "Uncover an Artwork from the Art Institute of Chicago Archive"
+        "Find an Artwork"
     )
 
 # ---------------------------
@@ -547,7 +547,7 @@ if st.session_state.artwork:
     )
 
     reflection_text = st.text_area(
-        "Write your response to this encounter.",
+        "Write a reflection on your experience and email the details of the encounter for your records.",
         value=(
             st.session_state.reflection_text
         ),
