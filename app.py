@@ -256,6 +256,7 @@ def generate_description(artwork):
     - Do not address the viewer directly
     - Do not over-explain symbolism
     - Avoid academic stiffness
+    - Don't be too forceful
 
     Output only the description.
     """
@@ -322,7 +323,7 @@ def send_archive_email(
     )
 
     html_body = f"""
-    <h2>Echo Archive — Reflection Record</h2>
+    <h2> Reflection Record </h2>
 
     <h3>Artwork</h3>
 
@@ -333,6 +334,14 @@ def send_archive_email(
     {artwork['medium']}
     </p>
 
+    <h3>Artwork Image</h3>
+
+    <p>
+    <a href="{artwork['image']}">
+    View Artwork
+    </a>
+    </p>
+    
     <h3>Visual Description</h3>
     <p>{description}</p>
 
@@ -341,14 +350,6 @@ def send_archive_email(
 
     <h3>Your Reflection</h3>
     <p>{reflection}</p>
-
-    <h3>Artwork Image</h3>
-
-    <p>
-    <a href="{artwork['image']}">
-    View Artwork
-    </a>
-    </p>
     """
 
     try:
@@ -400,7 +401,7 @@ with st.form("archive_form"):
     )
 
     submitted = st.form_submit_button(
-        "Draw from the archive"
+        "Uncover an Artwork from the Art Institute of Chicago Archive"
     )
 
 # ---------------------------
@@ -566,7 +567,7 @@ if st.session_state.artwork:
     # EMAIL ARCHIVE
     # ---------------------------
     archive = st.button(
-        "Send me an email archive"
+        "Email Me Details of This Archive"
     )
 
     if archive:
@@ -580,7 +581,7 @@ if st.session_state.artwork:
         )
 
         send = st.button(
-            "Archive Reflection"
+            "Send Details to My Email"
         )
 
         if send:
@@ -616,7 +617,7 @@ if st.session_state.artwork:
                 if success:
 
                     st.success(
-                        "Your reflection has been archived."
+                        "All details have been sent."
                     )
 
                 else:
