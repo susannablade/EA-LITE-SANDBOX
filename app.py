@@ -213,11 +213,8 @@ def get_random_artwork(retries=5):
 def generate_description(artwork):
 
     prompt = f"""
-    You are writing a curatorial description
-    for a museum visitor.
-
-    Help the user emotionally and historically
-    connect to the artwork.
+    You are writing a concise museum-style
+    visual description for an artwork.
 
     Artwork Information:
 
@@ -239,20 +236,17 @@ def generate_description(artwork):
     Museum Description:
     {artwork['description']}
 
-    Provenance:
-    {artwork['provenance']}
-
-    Exhibition History:
-    {artwork['exhibition_history']}
-
-    Write a rich atmospheric description
-    in 4-5 sentences.
+    Describe only visible or historically
+    grounded aspects of the artwork.
 
     Guidelines:
-    - Treat the artwork as emotionally alive
-    - Connect material, history, and mood
-    - Avoid academic stiffness
-    - Be restrained and literary
+    - Maximum 4 sentences
+    - Avoid emotional interpretation
+    - Avoid poetic or mystical language
+    - Do not speculate about the viewer
+    - Focus on composition, material,
+      subject matter, color, and form
+    - Maintain a restrained curatorial tone
 
     Output only the description.
     """
@@ -270,7 +264,8 @@ def generate_interpretation(
 ):
 
     prompt = f"""
-    A user shared this thought:
+    A user entered the following concepts
+    or thoughts:
 
     "{user_input}"
 
@@ -278,56 +273,24 @@ def generate_interpretation(
     {artwork['title']}
     by {artwork['artist']}
 
-    Curatorial Description:
+    Visual Description:
     "{description}"
 
-    Write a reflective interpretation
-    in 5-6 sentences.
+    Write a concise analysis connecting
+    the user's concepts to the artwork.
 
     Guidelines:
-    - Avoid generic spiritual language
-    - Be emotionally observant
-    - Do not summarize literally
-    - Sound thoughtful and restrained
+    - Explicitly reference the user's ideas
+    - Connect concepts to visible elements
+      of the work
+    - Avoid therapy-like language
+    - Avoid mystical or overly intimate tone
+    - Do not speak as an emotional guide
+    - Remain analytical, grounded,
+      and observational
+    - Maximum 4 sentences
 
     Output only the interpretation.
-    """
-
-    return ask_gemini(prompt)
-
-
-# ---------------------------
-# USER REFLECTION
-# ---------------------------
-def generate_user_reflection(
-    user_input,
-    artwork,
-    interpretation
-):
-
-    prompt = f"""
-    Help the user write a personal reflection
-    inspired by this artwork encounter.
-
-    User Thought:
-    "{user_input}"
-
-    Artwork:
-    {artwork['title']}
-    by {artwork['artist']}
-
-    Interpretation:
-    "{interpretation}"
-
-    Write a short first-person reflection.
-
-    Guidelines:
-    - Sound intimate and grounded
-    - Write like a journal entry
-    - Avoid sounding mystical
-    - Keep emotional specificity
-
-    Output only the reflection.
     """
 
     return ask_gemini(prompt)
@@ -361,13 +324,13 @@ def send_archive_email(
     {artwork['medium']}
     </p>
 
-    <h3>Curatorial Description</h3>
+    <h3>Visual Description</h3>
     <p>{description}</p>
 
-    <h3>Interpretation</h3>
+    <h3>Concept Connections</h3>
     <p>{interpretation}</p>
 
-    <h3>Personal Reflection</h3>
+    <h3>Your Reflection</h3>
     <p>{reflection}</p>
 
     <h3>Artwork Image</h3>
@@ -381,7 +344,7 @@ def send_archive_email(
 
     try:
 
-        resend.Emails.send({
+        response = resend.Emails.send({
             "from": (
                 "Echo Archive "
                 "<onboarding@resend.dev>"
@@ -391,10 +354,13 @@ def send_archive_email(
             "html": html_body
         })
 
+        print(response)
+
         return True
 
     except Exception as e:
 
+        st.error(f"Email error: {e}")
         print(f"Email error: {e}")
 
         return False
@@ -406,9 +372,9 @@ def send_archive_email(
 st.title("Echo Archive")
 
 st.write(
-    "A quiet experiment in reflection. "
     "An artwork is drawn from the archive "
-    "of the Art Institute of Chicago."
+    "of the Art Institute of Chicago and "
+    "connected to the concepts you bring into it."
 )
 
 # ---------------------------
@@ -417,9 +383,9 @@ st.write(
 with st.form("archive_form"):
 
     user_input = st.text_area(
-        "What is circling your mind right now?",
+        "What concepts or thoughts are on your mind?",
         placeholder=(
-            "A thought, concept, memory or feeling..."
+            "A concept, memory, tension, idea, or feeling..."
         ),
         height=80
     )
@@ -496,7 +462,7 @@ if st.session_state.artwork:
     if not st.session_state.description:
 
         with st.spinner(
-            "The archive gathers its thoughts..."
+            "Analyzing the artwork..."
         ):
 
             st.session_state.description = (
@@ -528,7 +494,7 @@ if st.session_state.artwork:
     # INTERPRET BUTTON
     # ---------------------------
     interpret = st.button(
-        "Reflect on this artwork"
+        "Connect my concepts to this artwork"
     )
 
     if (
@@ -537,7 +503,7 @@ if st.session_state.artwork:
     ):
 
         with st.spinner(
-            "Listening closely..."
+            "Connecting concepts to the artwork..."
         ):
 
             st.session_state.interpretation = (
@@ -554,7 +520,7 @@ if st.session_state.artwork:
     if st.session_state.interpretation:
 
         st.markdown(
-            "### Reflection"
+            "### Concept Connections"
         )
 
         st.write(
@@ -577,7 +543,7 @@ if st.session_state.artwork:
         ),
         height=140,
         placeholder=(
-            "What does this artwork leave behind?"
+            "What connections or tensions emerge for you?"
         )
     )
 
@@ -585,36 +551,13 @@ if st.session_state.artwork:
         reflection_text
     )
 
-    # ---------------------------
-    # AI ASSIST BUTTON
-    # ---------------------------
-    assist = st.button(
-        "Help me articulate this"
-    )
-
-    if assist:
-
-        with st.spinner(
-            "Finding the language..."
-        ):
-
-            st.session_state.reflection_text = (
-                generate_user_reflection(
-                    st.session_state.user_input,
-                    art,
-                    st.session_state.interpretation
-                )
-            )
-
-        st.rerun()
-
     st.divider()
 
     # ---------------------------
     # EMAIL ARCHIVE
     # ---------------------------
     archive = st.button(
-        "Send me an email to archive this reflection"
+        "Send me an email archive"
     )
 
     if archive:

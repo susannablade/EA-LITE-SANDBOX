@@ -1,15 +1,28 @@
+---
+title: Echo Archive
+emoji: 🎨
+colorFrom: blue
+colorTo: indigo
+sdk: streamlit
+python_version: "3.11"
+app_file: app.py
+pinned: false
+---
+
 # Echo Archive
 
-Echo Archive is an AI-powered reflective archive designed to help users connect with artwork they may have never explored before.
+Echo Archive is an AI-assisted interpretive art experience built with Streamlit, Gemini 2.5 Flash, and the Art Institute of Chicago API.
 
-For many people, artwork can feel historically distant, emotionally inaccessible, or difficult to interpret without formal artistic knowledge. Traditional digital museum experiences often prioritize metadata, search, and categorization, but rarely help users build a personal connection to the work itself.
+The application retrieves a random artwork from the Art Institute of Chicago collection and connects it to concepts, thoughts, or tensions provided by the user. Rather than positioning AI as a therapeutic or emotionally prescriptive voice, the system focuses on grounded visual analysis and conceptual association.
 
-Echo Archive addresses this problem by combining archival retrieval with generative AI interpretation.
+Echo Archive explores how generative systems can mediate encounters between users and archival material while preserving ambiguity, interpretation, and personal authorship.
+
+---
 
 # System Architecture
 
-```text id="e04x6v"
-User Reflection Input
+```text
+User Concepts / Reflection Input
         ↓
 [Art Institute of Chicago API]
         ↓
@@ -18,66 +31,95 @@ Artwork Retrieval + Metadata Filtering
 Streamlit Artwork Display
         ↓
 [Gemini 2.5 Flash]
-Curatorial Description
+Concise Visual Description
         ↓
 [Gemini 2.5 Flash]
-Reflective Interpretation
+Concept Connection Layer
         ↓
-User or Gemini-Assisted Reflection
+Optional User Reflection
         ↓
 Email Archival System
 ```
 
+---
+
+# Core Interaction Model
+
+The system separates interpretation into distinct stages:
+
+### 1. Artwork Retrieval
+A random artwork is selected from the Art Institute of Chicago API and filtered for richer contextual metadata.
+
+### 2. Visual Description
+Gemini generates a concise museum-style description focused on visible composition, material, subject matter, and form.
+
+### 3. Concept Connections
+The model connects the user's concepts or thoughts to visual and thematic elements within the artwork using a restrained curatorial tone.
+
+### 4. User Reflection
+Users can optionally write and archive their own reflections inspired by the encounter.
+
+---
+
 # Key Design Decisions
 
-### Retrieval Before Generation
+## Retrieval Before Generation
 
-Artwork retrieval is grounded in real museum records and filtered for richer historical metadata.
+The experience is grounded in real museum records rather than AI-generated imagery or fictional archives.
 
-### Layered Interpretation
+## Interpretation Without Persona Simulation
 
-The system separates:
+The application intentionally avoids:
+- therapist-style AI behavior
+- emotional roleplay
+- mystical narration
+- companion-style interaction
 
-* artwork retrieval
-* curatorial description
-* interpretation
-* personal reflection
+Instead, Gemini functions as an interpretive layer that connects user concepts to the artwork in an analytical and observational manner.
 
-to create a paced reflective experience.
+## Separation of Description and Interpretation
 
-### Human + AI Co-Authorship
+Visual description and conceptual interpretation are handled independently to avoid redundancy and maintain clarity.
 
-Users can either write their own reflections or use Gemini-assisted drafting.
+## Human-Centered Reflection
+
+The final reflective layer belongs to the user rather than the model. The system supports interpretation without attempting to emotionally speak for the participant.
+
+---
 
 # Tech Stack
 
-* Streamlit
-* Python
-* Google Gemini 2.5 Flash
-* Art Institute of Chicago API
-* Resend Email API
-* dotenv
+- Streamlit
+- Python
+- Google Gemini 2.5 Flash
+- Art Institute of Chicago API
+- Resend Email API
+- python-dotenv
 
+---
 
-## Core Features
+# Core Features
 
-* Randomized artwork retrieval with historical metadata filtering
-* AI-generated curatorial descriptions
-* Reflective interpretation pipeline
-* User-authored or Gemini-assisted reflections
-* Email archiving of encounters and reflections
+- Randomized artwork retrieval
+- Metadata-aware artwork filtering
+- AI-generated visual descriptions
+- Concept-to-artwork interpretation pipeline
+- User-authored reflections
+- Email archiving system
+- Session state persistence in Streamlit
 
-## Run Locally
+---
 
-```bash id="v9m65e"
+# Run Locally
+
+```bash
 pip install -r requirements.txt
 streamlit run app.py
 ```
 
 Create a `.env` file with:
 
-```env id="f3hkgm"
+```env
 GEMINI_API_KEY=your_key_here
 RESEND_API_KEY=your_key_here
 ```
-
