@@ -246,10 +246,12 @@ def generate_description(artwork):
     curatorial description.
 
     Guidelines:
-    - Maximum 4 sentences
+    - Maximum 6 sentences
     - Use the archival context when relevant
     - Connect visual qualities to material,
       historical, or atmospheric details
+    - Reference the time period of the piece 
+     when presenting historical conext
     - Allow subtle aesthetic language
     - Sound perceptive and informed
     - Avoid mystical or therapeutic language
@@ -299,10 +301,13 @@ def generate_interpretation(
     }
 
     Write a concise curatorial interpretation
-    connecting the user's idea to the artwork.
+    connecting the user's idea to the artwork. 
+    If the connection is loose or unexpected,
+    acknowledge the contrast or coincidence 
+    rather than forcing coherence.
 
     Guidelines:
-    - Use both visual and historical context
+    - Use both visual and historical contex
     - Consider artistic movements,
       tensions, and cultural atmosphere
     - Connections may be indirect,
@@ -316,6 +321,7 @@ def generate_interpretation(
     - Do not force symbolic agreement
       between the artwork and
       the user's idea
+    - Do not overstate weak connections.
     - Avoid therapy-like language
     - Avoid mystical narration
     - Sound perceptive, historically aware,
