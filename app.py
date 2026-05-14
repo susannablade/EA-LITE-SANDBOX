@@ -27,6 +27,15 @@ ARTIC_API_URL = (
 session = requests.Session()
 
 # ---------------------------
+# HEALTH CHECK MODE
+# ---------------------------
+query_params = st.query_params
+
+if "health" in query_params:
+    st.write("ok")
+    st.stop()
+
+# ---------------------------
 # SESSION STATE
 # ---------------------------
 DEFAULT_STATE = {
