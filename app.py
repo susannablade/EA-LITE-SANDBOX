@@ -246,12 +246,11 @@ def generate_description(artwork):
     curatorial description.
 
     Guidelines:
-    - Maximum 6 sentences
+    - Maximum 4 sentences
     - Use the archival context when relevant
+    - Note the date for historical context
     - Connect visual qualities to material,
       historical, or atmospheric details
-    - Reference the time period of the piece 
-     when presenting historical conext
     - Allow subtle aesthetic language
     - Sound perceptive and informed
     - Avoid mystical or therapeutic language
@@ -326,7 +325,7 @@ def generate_interpretation(
     - Avoid mystical narration
     - Sound perceptive, historically aware,
       and aesthetically attentive
-    - Maximum 5 sentences
+    - Maximum 4 sentences
 
     Output only the interpretation.
     """
