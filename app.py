@@ -325,22 +325,18 @@ def send_archive_email(
     html_body = f"""
     <h2> Reflection Record </h2>
 
-    <h3>Artwork</h3>
+    <h3><a href="{artwork['image']}">
+    View Artwork
+    </a></h3>
 
     <p>
     <strong>{artwork['title']}</strong><br>
     {artwork['artist']}<br>
     {artwork['date']}<br>
     {artwork['medium']}
+
     </p>
 
-    <h3>Artwork Image</h3>
-
-    <p>
-    <a href="{artwork['image']}">
-    View Artwork
-    </a>
-    </p>
 
     <h3>Visual Description</h3>
     <p>{description}</p>
