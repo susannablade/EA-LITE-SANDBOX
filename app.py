@@ -274,8 +274,8 @@ def generate_interpretation(
 ):
 
     prompt = f"""
-    A user entered the following concepts
-    or thoughts:
+    A user entered the following concept,
+    thought, or tension:
 
     "{user_input}"
 
@@ -286,19 +286,41 @@ def generate_interpretation(
     Visual Description:
     "{description}"
 
-    Write a concise analysis connecting
-    the user's concepts to the artwork.
+    Artwork Context:
+    - Date: {artwork['date']}
+    - Style: {artwork['style']}
+    - Classification: {artwork['classification']}
+
+    Themes:
+    {
+        ', '.join(artwork['themes'])
+        if artwork['themes']
+        else 'None listed'
+    }
+
+    Write a concise curatorial interpretation
+    connecting the user's idea to the artwork.
 
     Guidelines:
-    - Explicitly reference the user's ideas
-    - Connect concepts to visible elements
-      of the work
+    - Use both visual and historical context
+    - Consider artistic movements,
+      tensions, and cultural atmosphere
+    - Connections may be indirect,
+      historical, atmospheric,
+      material, or contrasting
+    - Allow the artwork to resist,
+      complicate, or soften
+      the user's concept
+    - The relationship does not need
+      to be literal
+    - Do not force symbolic agreement
+      between the artwork and
+      the user's idea
     - Avoid therapy-like language
-    - Avoid mystical or overly intimate tone
-    - Do not speak as an emotional guide
-    - Remain analytical, grounded,
-      and observational
-    - Maximum 4 sentences
+    - Avoid mystical narration
+    - Sound perceptive, historically aware,
+      and aesthetically attentive
+    - Maximum 5 sentences
 
     Output only the interpretation.
     """
@@ -389,7 +411,7 @@ st.write(
 with st.form("archive_form"):
 
     user_input = st.text_area(
-        "Share a concept that's been on your mind, then pull an artwork from the Art Institute of Chicago.",
+        "Share a concept that's been on your mind, then discover an artwork from the Art Institute of Chicago.",
         placeholder=(
             "A concept, memory, tension, idea, or feeling..."
         ),
