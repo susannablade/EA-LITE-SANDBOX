@@ -213,8 +213,8 @@ def get_random_artwork(retries=5):
 def generate_description(artwork):
 
     prompt = f"""
-    You are writing a concise museum-style
-    visual description for an artwork.
+    You are writing a concise curatorial
+    description for a museum visitor.
 
     Artwork Information:
 
@@ -236,17 +236,26 @@ def generate_description(artwork):
     Museum Description:
     {artwork['description']}
 
-    Describe only visible or historically
-    grounded aspects of the artwork.
+    Provenance:
+    {artwork['provenance']}
+
+    Exhibition History:
+    {artwork['exhibition_history']}
+
+    Write a concise but evocative
+    curatorial description.
 
     Guidelines:
     - Maximum 4 sentences
-    - Avoid emotional interpretation
-    - Avoid poetic or mystical language
-    - Do not speculate about the viewer
-    - Focus on composition, material,
-      subject matter, color, and form
-    - Maintain a restrained curatorial tone
+    - Use the archival context when relevant
+    - Connect visual qualities to material,
+      historical, or atmospheric details
+    - Allow subtle aesthetic language
+    - Sound perceptive and informed
+    - Avoid mystical or therapeutic language
+    - Do not address the viewer directly
+    - Do not over-explain symbolism
+    - Avoid academic stiffness
 
     Output only the description.
     """
