@@ -604,10 +604,6 @@ if st.session_state.artwork:
     # ---------------------------
     if st.session_state.interpretation:
 
-        st.markdown(
-            "### Concept Connections"
-        )
-
         st.write(
             st.session_state.interpretation
         )
