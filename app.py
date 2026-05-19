@@ -571,10 +571,14 @@ if st.session_state.artwork:
     st.session_state.reflection_text = (
         reflection_text
     )
+    st.divider()
 
     # ---------------------------
     # INTERPRET BUTTON
     # ---------------------------
+    st.markdown(
+        "### Reflect with the Archive"
+    )
     interpret = st.button(
         "Reflect with me"
     )
@@ -612,12 +616,9 @@ if st.session_state.artwork:
     # ---------------------------
     # EMAIL ARCHIVE
     # ---------------------------
-    st.markdown(
-        "### Archive This Encounter"
-    )
 
     email_input = st.text_input(
-        "Enter your email address"
+        "Archive This encounter by sending the details to your email. Enter your email address below and click the button to send."
     )
 
     send = st.button(
