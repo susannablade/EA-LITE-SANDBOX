@@ -388,17 +388,32 @@ def send_archive_email(
 
     try:
 
-        response = resend.Emails.send({
-            "from": (
-                "Echo Archive "
-                "<onboarding@resend.dev>"
-            ),
-            "to": recipient_email,
-            "subject": subject,
-            "html": html_body
-        })
+        msg = EmailMessage()
 
-        print(response)
+        msg["Subject"] = subject
+        msg["From"] = GMAIL_USER
+        msg["To"] = recipient_email
+
+        msg.set_content(
+            "Your email client does not support HTML."
+        )
+
+        msg.add_alternative(
+            html_body,
+            subtype="html"
+        )
+
+        with smtplib.SMTP_SSL(
+            "smtp.gmail.com",
+            465
+        ) as smtp:
+
+            smtp.login(
+                GMAIL_USER,
+                GMAIL_APP_PASSWORD
+            )
+
+            smtp.send_message(msg)
 
         return True
 
