@@ -452,7 +452,7 @@ with st.form("archive_form"):
     )
 
     submitted = st.form_submit_button(
-        "Discover"
+        "Discover Artwork"
     )
 
 # ---------------------------
@@ -551,10 +551,32 @@ if st.session_state.artwork:
     st.divider()
 
     # ---------------------------
+    # USER REFLECTION
+    # ---------------------------
+    st.markdown(
+        "### Your Reflection"
+    )
+
+    reflection_text = st.text_area(
+        "Write a reflection on your experience and email the details of the encounter for your records.",
+        value=(
+            st.session_state.reflection_text
+        ),
+        height=140,
+        placeholder=(
+            "What connections or tensions emerge for you?"
+        )
+    )
+
+    st.session_state.reflection_text = (
+        reflection_text
+    )
+
+    # ---------------------------
     # INTERPRET BUTTON
     # ---------------------------
     interpret = st.button(
-        "Connect my concepts to this artwork"
+        "Reflect with me"
     )
 
     if (
@@ -586,32 +608,6 @@ if st.session_state.artwork:
         st.write(
             st.session_state.interpretation
         )
-
-    st.divider()
-
-    # ---------------------------
-    # USER REFLECTION
-    # ---------------------------
-    st.markdown(
-        "### Your Reflection"
-    )
-
-    reflection_text = st.text_area(
-        "Write a reflection on your experience and email the details of the encounter for your records.",
-        value=(
-            st.session_state.reflection_text
-        ),
-        height=140,
-        placeholder=(
-            "What connections or tensions emerge for you?"
-        )
-    )
-
-    st.session_state.reflection_text = (
-        reflection_text
-    )
-
-    st.divider()
 
     # ---------------------------
     # EMAIL ARCHIVE
