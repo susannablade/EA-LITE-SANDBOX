@@ -385,6 +385,11 @@ def send_archive_email(
     <h3>Your Reflection</h3>
 
     <p>{reflection}</p>
+
+    <h4> Try Echo Archive Again!</h4>
+    <a href="https://echoarchive.streamlit.app" target="_blank">
+    Try Echo Archive Again!
+    </a>
     """
 
     try:
@@ -551,35 +556,13 @@ if st.session_state.artwork:
     st.divider()
 
     # ---------------------------
-    # USER REFLECTION
-    # ---------------------------
-    st.markdown(
-        "### Your Reflection"
-    )
-
-    reflection_text = st.text_area(
-        "Write a reflection on your experience and email the details of the encounter for your records.",
-        value=(
-            st.session_state.reflection_text
-        ),
-        height=140,
-        placeholder=(
-            "What connections or tensions emerge for you?"
-        )
-    )
-
-    st.session_state.reflection_text = (
-        reflection_text
-    )
-
-    # ---------------------------
     # INTERPRET BUTTON
     # ---------------------------
     st.markdown(
         "### Reflect with the Archive"
     )
     interpret = st.button(
-        "Reflect with me"
+        "Connect my Concept to the Artwork"
     )
 
     if (
@@ -608,6 +591,29 @@ if st.session_state.artwork:
             st.session_state.interpretation
         )
     
+    # ---------------------------
+    # USER REFLECTION
+    # ---------------------------
+    st.markdown(
+        "### Your Reflection"
+    )
+
+    reflection_text = st.text_area(
+        "Write a reflection on your experience and email the details of the " \
+        " encounter for your records.",
+        value=(
+            st.session_state.reflection_text
+        ),
+        height=140,
+        placeholder=(
+            "What connections or tensions emerge for you?"
+        )
+    )
+
+    st.session_state.reflection_text = (
+        reflection_text
+    )
+
     st.divider()
 
     # ---------------------------
