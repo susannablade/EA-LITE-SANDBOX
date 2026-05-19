@@ -386,7 +386,6 @@ def send_archive_email(
 
     <p>{reflection}</p>
 
-    <h4> Try Echo Archive Again!</h4>
     <a href="https://echoarchive.streamlit.app" target="_blank">
     Try Echo Archive Again!
     </a>
