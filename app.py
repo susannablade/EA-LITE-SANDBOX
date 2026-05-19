@@ -5,7 +5,7 @@ import requests
 import streamlit as st
 from dotenv import load_dotenv
 from google import genai
-import resend
+from email.message import EmailMessage
 
 # ---------------------------
 # CONFIG
@@ -16,8 +16,12 @@ client = genai.Client(
     api_key=os.getenv("GEMINI_API_KEY")
 )
 
-resend.api_key = os.getenv(
-    "RESEND_API_KEY"
+GMAIL_USER = os.getenv(
+    "GMAIL_USER"
+)
+
+GMAIL_APP_PASSWORD = os.getenv(
+    "GMAIL_APP_PASSWORD"
 )
 
 ARTIC_API_URL = (
@@ -339,6 +343,7 @@ def generate_interpretation(
 def send_archive_email(
     recipient_email,
     artwork,
+    user_input,
     description,
     interpretation,
     reflection
@@ -364,14 +369,20 @@ def send_archive_email(
 
     </p>
 
-
     <h3>Visual Description</h3>
+
     <p>{description}</p>
+    
+    <h3>Your Original Input</h3>
+
+    <p>{user_input}</p>
 
     <h3>Concept Connections</h3>
+
     <p>{interpretation}</p>
 
     <h3>Your Reflection</h3>
+
     <p>{reflection}</p>
     """
 
@@ -394,10 +405,10 @@ def send_archive_email(
     except Exception as e:
 
         st.error(f"Email error: {e}")
+
         print(f"Email error: {e}")
 
         return False
-
 
 # ---------------------------
 # UI
@@ -405,9 +416,10 @@ def send_archive_email(
 st.title("Echo Archive")
 
 st.write(
-    "An artwork is drawn from the archive "
-    "of the Art Institute of Chicago and "
-    "connected to the concepts you bring into it."
+    "Bring your own thoughts "
+    "to the archive and discover artworks " 
+    "that are "
+    "unexpectedly in conversation with your ideas. " 
 )
 
 # ---------------------------
@@ -424,7 +436,7 @@ with st.form("archive_form"):
     )
 
     submitted = st.form_submit_button(
-        "Find an Artwork"
+        "Discover"
     )
 
 # ---------------------------
@@ -586,7 +598,7 @@ if st.session_state.artwork:
 
     st.divider()
 
-    # ---------------------------
+      # ---------------------------
     # EMAIL ARCHIVE
     # ---------------------------
     archive = st.button(
@@ -626,6 +638,9 @@ if st.session_state.artwork:
                     success = send_archive_email(
                         recipient_email=email_input,
                         artwork=art,
+                        user_input=(
+                            st.session_state.user_input
+                        ),
                         description=(
                             st.session_state.description
                         ),
