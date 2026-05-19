@@ -41,7 +41,6 @@ DEFAULT_STATE = {
     "interpretation": "",
     "reflection_text": "",
     "user_input": "",
-    "show_email_input": False
 }
 
 for key, value in DEFAULT_STATE.items():
@@ -476,7 +475,6 @@ if submitted:
     st.session_state.description = ""
     st.session_state.interpretation = ""
     st.session_state.reflection_text = ""
-    st.session_state.show_email_input = False
 
     with st.spinner(
         "Searching the archive..."
@@ -615,68 +613,62 @@ if st.session_state.artwork:
 
     st.divider()
 
-      # ---------------------------
+    # ---------------------------
     # EMAIL ARCHIVE
     # ---------------------------
-    archive = st.button(
-        "Email Me Details of This Archive"
+    st.markdown(
+        "### Archive This Encounter"
     )
 
-    if archive:
+    email_input = st.text_input(
+        "Enter your email address"
+    )
 
-        st.session_state.show_email_input = True
+    send = st.button(
+        "Send Archive to My Email"
+    )
 
-    if st.session_state.show_email_input:
+    if send:
 
-        email_input = st.text_input(
-            "Enter your email address"
-        )
+        if not valid_email(
+            email_input
+        ):
 
-        send = st.button(
-            "Send Details to My Email"
-        )
+            st.warning(
+                "Please enter a valid email."
+            )
 
-        if send:
+        else:
 
-            if not valid_email(
-                email_input
+            with st.spinner(
+                "Archiving reflection..."
             ):
 
-                st.warning(
-                    "Please enter a valid email."
+                success = send_archive_email(
+                    recipient_email=email_input,
+                    artwork=art,
+                    user_input=(
+                        st.session_state.user_input
+                    ),
+                    description=(
+                        st.session_state.description
+                    ),
+                    interpretation=(
+                        st.session_state.interpretation
+                    ),
+                    reflection=(
+                        st.session_state.reflection_text
+                    )
+                )
+
+            if success:
+
+                st.success(
+                    "All details have been sent."
                 )
 
             else:
 
-                with st.spinner(
-                    "Archiving reflection..."
-                ):
-
-                    success = send_archive_email(
-                        recipient_email=email_input,
-                        artwork=art,
-                        user_input=(
-                            st.session_state.user_input
-                        ),
-                        description=(
-                            st.session_state.description
-                        ),
-                        interpretation=(
-                            st.session_state.interpretation
-                        ),
-                        reflection=(
-                            st.session_state.reflection_text
-                        )
-                    )
-
-                if success:
-
-                    st.success(
-                        "All details have been sent."
-                    )
-
-                else:
-
-                    st.error(
-                        "Unable to send email."
-                    )
+                st.error(
+                    "Unable to send email."
+                )
