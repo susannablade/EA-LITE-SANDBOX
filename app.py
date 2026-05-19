@@ -571,7 +571,6 @@ if st.session_state.artwork:
     st.session_state.reflection_text = (
         reflection_text
     )
-    st.divider()
 
     # ---------------------------
     # INTERPRET BUTTON
@@ -612,7 +611,8 @@ if st.session_state.artwork:
         st.write(
             st.session_state.interpretation
         )
-        st.divider()
+    
+    st.divider()
 
     # ---------------------------
     # EMAIL ARCHIVE
