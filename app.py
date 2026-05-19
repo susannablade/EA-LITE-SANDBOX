@@ -5,7 +5,9 @@ import requests
 import streamlit as st
 from dotenv import load_dotenv
 from google import genai
+import smtplib
 from email.message import EmailMessage
+
 
 # ---------------------------
 # CONFIG
