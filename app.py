@@ -359,7 +359,7 @@ def send_archive_email(
     <h2> Reflection Record </h2>
 
     <h3><a href="{artwork['image']}">
-    View Artwork
+    View Artwork Here
     </a></h3>
 
     <p>
@@ -618,7 +618,8 @@ if st.session_state.artwork:
     # ---------------------------
 
     email_input = st.text_input(
-        "Archive This encounter by sending the details to your email. Enter your email address below and click the button to send."
+        "Archive this encounter by sending the details to your email." 
+        "Enter your email address below and click the button to send."
     )
 
     send = st.button(
