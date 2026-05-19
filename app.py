@@ -612,14 +612,17 @@ if st.session_state.artwork:
         st.write(
             st.session_state.interpretation
         )
+        st.divider()
 
     # ---------------------------
     # EMAIL ARCHIVE
     # ---------------------------
-
+    st.markdown(
+        "### Create a personal Archive"
+    )
     email_input = st.text_input(
         "Archive this encounter by sending the details to your email." 
-        "Enter your email address below and click the button to send."
+        " Enter your email address below and click the button to send."
     )
 
     send = st.button(
