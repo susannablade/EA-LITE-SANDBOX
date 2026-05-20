@@ -597,13 +597,8 @@ if st.session_state.artwork:
     # ---------------------------
     # USER REFLECTION
     # ---------------------------
-    st.markdown(
-        "### Your Reflection"
-    )
-
     reflection_text = st.text_area(
-        "Write a reflection on your experience and email the details of the " \
-        " encounter for your records.",
+        "Option to write a reflection on your experience",
         value=(
             st.session_state.reflection_text
         ),
@@ -626,10 +621,8 @@ if st.session_state.artwork:
         "### Create a personal Archive"
     )
     email_input = st.text_input(
-        "Archive this encounter by sending the details to your email." 
-        " Enter your email address below and click the button to send."
-    )
-
+         "Archive this encounter by sending the details to your email.",
+    placeholder="email@example.com")
     send = st.button(
         "Send Archive to My Email"
     )
