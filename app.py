@@ -248,7 +248,8 @@ def generate_description(artwork):
     {artwork['exhibition_history']}
 
     Write a concise but evocative
-    curatorial description.
+    curatorial description. Always reference principles of
+    art and design.
 
     Guidelines:
     - Maximum 4 sentences
@@ -308,7 +309,8 @@ def generate_interpretation(
     connecting the user's idea to the artwork. 
     If the connection is loose or unexpected,
     acknowledge the contrast or coincidence 
-    rather than forcing coherence.
+    rather than forcing coherence. Always end on a question
+    that invites the user to reflect on the artwork.
 
     Guidelines:
     - Use both visual and historical contex
@@ -448,7 +450,9 @@ st.write(
 with st.form("archive_form"):
 
     user_input = st.text_area(
-        "Share a concept that's been on your mind, then discover an artwork from the Art Institute of Chicago.",
+        "Share a concept that's been on your mind. " \
+        " Draw a random artwork from the Art Institute of Chicago." \
+        " Reflect on the connections or tensions that emerge.",
         placeholder=(
             "A concept, memory, tension, idea, or feeling..."
         ),
