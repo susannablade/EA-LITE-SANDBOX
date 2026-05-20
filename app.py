@@ -598,14 +598,11 @@ if st.session_state.artwork:
     # USER REFLECTION
     # ---------------------------
     reflection_text = st.text_area(
-        "Option to write a reflection on your experience",
+        "Reflect independently here:",
         value=(
             st.session_state.reflection_text
         ),
         height=140,
-        placeholder=(
-            "What connections or tensions emerge for you?"
-        )
     )
 
     st.session_state.reflection_text = (
